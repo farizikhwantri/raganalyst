@@ -1,17 +1,17 @@
 import os
 import json
 import uuid
-import argparse
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Optional
+
+from PIL import Image
 
 import fitz  # PyMuPDF
 import pdfplumber
-from pdf2image import convert_from_path
 import pytesseract
-from PIL import Image
-import numpy as np
-from sentence_transformers import SentenceTransformer
+
+from pdf2image import convert_from_path
+
 from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
 
 from config import CHUNK_SIZE, CHUNK_OVERLAP, OCR_DPI, OCR_LANG

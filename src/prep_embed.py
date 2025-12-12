@@ -6,9 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
 import fitz  # PyMuPDF
-import pdfplumber
 from pdf2image import convert_from_path
-import pytesseract
 from PIL import Image
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -22,80 +20,10 @@ from utils import extract_images_from_page
 from utils import extract_text_blocks_with_layout
 from utils import extract_tables_pdfplumber
 from utils import ocr_page_image
+from utils import chunk_text
 
-# -------- Configuration --------
-EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-EMBED_DIM = 384  # for all-MiniLM-L6-v2
-CHUNK_SIZE = 800     # characters per chunk (tune for your use)
-CHUNK_OVERLAP = 150  # overlap between chunks
-OCR_DPI = 300        # DPI for pdf2image OCR conversion
-OCR_LANG = "eng"     # change to 'deu' or others as needed
-
-# # -------- Chunking --------
-# def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> List[str]:
-#     """Simple character-based chunker preserving sentence boundaries where possible."""
-#     text = text.strip()
-#     if not text:
-#         return []
-#     # naive split by paragraphs first
-#     paras = [p.strip() for p in text.split("\n\n") if p.strip()]
-#     chunks = []
-#     current = ""
-#     for p in paras:
-#         if len(current) + len(p) + 1 <= chunk_size:
-#             current = (current + "\n\n" + p).strip() if current else p
-#         else:
-#             if current:
-#                 chunks.append(current)
-#             # if paragraph itself too big, split it into sentence-ish pieces
-#             if len(p) <= chunk_size:
-#                 current = p
-#             else:
-#                 # fall back to sliding window
-#                 start = 0
-#                 while start < len(p):
-#                     end = min(start + chunk_size, len(p))
-#                     chunks.append(p[start:end])
-#                     start = end - overlap if end - overlap > start else end
-#                 current = ""
-#     if current:
-#         chunks.append(current)
-#     # apply overlap merge
-#     merged = []
-#     for i, c in enumerate(chunks):
-#         if i == 0:
-#             merged.append(c)
-#         else:
-#             prev = merged[-1]
-#             if len(prev) + len(c) <= chunk_size + overlap:
-#                 merged[-1] = prev + "\n\n" + c
-#             else:
-#                 merged.append(c)
-#     return merged
-# -------- Chunking --------
-def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, 
-               overlap: int = CHUNK_OVERLAP) -> List[str]:
-    """
-    Chunk text using LangChain's RecursiveCharacterTextSplitter.
-    Tries larger separators first to preserve structure, then falls back.
-    """
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=overlap,
-        # You can tune separators order; this works well for PDF text
-        separators=[
-            "\n\n",        # paragraphs
-            "\n",          # lines
-            ". ",          # sentences
-            " ",           # words
-            ""             # characters
-        ],
-        length_function=len,
-        is_separator_regex=False,
-    )
-    return splitter.split_text(text)
-
-
+from config import CHUNK_SIZE, CHUNK_OVERLAP, OCR_DPI, OCR_LANG
+from config import EMBED_MODEL_NAME, EMBED_DIM
 
 # -------- Ingestion Main --------
 def ingest_pdf_to_faiss(pdf_path: str, outdir: str, use_ocr_threshold: float = 0.85):
@@ -265,7 +193,6 @@ def iterate_pdfs_in_directory(dir_path: str) -> List[str]:
                 pdf_files.append(os.path.join(root, file))
     return pdf_files
 
-# -------- NEW: Combined ingestion for many PDFs into one index --------
 def ingest_pdfs_to_faiss_combined(inputs: List[str], outdir: str):
     """
     Ingest multiple PDFs and produce a single FAISS index and single metadata.jsonl.

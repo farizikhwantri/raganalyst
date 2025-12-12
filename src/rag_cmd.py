@@ -7,6 +7,8 @@ from faiss_module import FaissIndexStore
 
 from config import EMBED_MODEL_NAME
 from config import GEN_MODEL_NAME
+from config import FAISS_INDEX_PATH
+from config import METADATA_PATH
 
 def rewrite_question(history: list, question: str) -> str:
     """
@@ -73,12 +75,13 @@ if __name__ == "__main__":
 
     # existing setup
     embedder = SentenceTransformer(EMBED_MODEL_NAME)
-    store = FaissIndexStore.load("./data/vector/rag_index", 
-                                 dim=embedder.get_sentence_embedding_dimension())
+    emb_dim = embedder.get_sentence_embedding_dimension()
+    store = FaissIndexStore.load(FAISS_INDEX_PATH, 
+                                 dim=emb_dim)
 
     # load metadata map id -> item
     meta = {}
-    with open("./data/vector/metadata.jsonl", "r", encoding="utf-8") as fh:
+    with open(METADATA_PATH, "r", encoding="utf-8") as fh:
         for line in fh:
             item = json.loads(line)
             meta[item["id"]] = item
@@ -91,7 +94,7 @@ if __name__ == "__main__":
             q = input("User: ").strip()
             if not q:
                 continue
-            answer, standalone_q = rag_with_followup(q, history, store, embedder, meta, k=6)
+            answer, standalone_q = rag_with_followup(q, history, store, embedder, meta, k=5)
             print(f"Standalone: {standalone_q}")
             print(f"Assistant: {answer}\n")
             history.append(("user", q))

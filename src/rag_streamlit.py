@@ -7,6 +7,9 @@ from sentence_transformers import SentenceTransformer
 
 from faiss_module import FaissIndexStore
 from config import EMBED_MODEL_NAME, GEN_MODEL_NAME
+from config import FAISS_INDEX_PATH, METADATA_PATH
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # ---- Cache model loaders ----
 @st.cache_resource
@@ -18,7 +21,7 @@ def load_generator():
     tokenizer = AutoTokenizer.from_pretrained(GEN_MODEL_NAME)
     gen_model = AutoModelForCausalLM.from_pretrained(
         GEN_MODEL_NAME,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+        dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         device_map="auto",
     )
     return tokenizer, gen_model
@@ -38,7 +41,9 @@ def load_metadata(metadata_path: str):
     return meta
 
 # ---- RAG components ----
-def rewrite_question(tokenizer, gen_model, history: list, question: str) -> str:
+def rewrite_question(tokenizer, gen_model, 
+                     history: list, 
+                     question: str) -> str:
     hist_text = "\n".join([f"{r}: {t}" for r, t in history][-8:])
     prompt = (
         "You are a question rewriter. Rewrite the user's follow-up question into a "
@@ -53,7 +58,8 @@ def rewrite_question(tokenizer, gen_model, history: list, question: str) -> str:
     rewritten = text.split("Rewritten standalone question:")[-1].strip()
     return rewritten or question
 
-def retrieve(query: str, store: FaissIndexStore, embedder, meta: dict, k: int = 5):
+def retrieve(query: str, store: FaissIndexStore, 
+             embedder, meta: dict, k: int = 5):
     qvec = embedder.encode([query], convert_to_numpy=True)
     hits = store.search(qvec, k=k)
     docs = []
@@ -75,28 +81,55 @@ def retrieve(query: str, store: FaissIndexStore, embedder, meta: dict, k: int = 
 
 def generate_answer(tokenizer, gen_model, query: str, retrieved_docs: list) -> str:
     context = "\n\n".join(retrieved_docs)
-    prompt = (
-        "You are a helpful assistant. Use the provided context to answer the user's question. "
-        "If the answer cannot be found in the context, say you don't know.\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question: {query}\n\n"
-        "Answer:"
+
+    # Build chat messages for HF chat template
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful analyst specializing in the analysis of Annual Reports within the automotive sector. "
+                "Your daily tasks involve extracting key financial metrics such as revenue, EBITDA, growth numbers, and conducting comparative analyses across different car companies, as well as comparing them to other sectors. "
+                "Use the provided context to answer the user's question. "
+                "If the answer cannot be found in the context, say you don't know. "
+                "Cite page numbers when possible."
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"Context:\n{context}\n\nQuestion: {query}\n\nAnswer:",
+        },
+    ]
+
+    # Render prompt using the model's chat template
+    prompt_text = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
     )
-    inputs = tokenizer(prompt, return_tensors="pt").to(gen_model.device)
-    output = gen_model.generate(**inputs, max_new_tokens=256, do_sample=False)
+
+    inputs = tokenizer(prompt_text, 
+                       return_tensors="pt")
+    inputs = inputs.to(gen_model.device)
+    output = gen_model.generate(
+        **inputs,
+        max_new_tokens=256,
+        do_sample=False,
+    )
     text = tokenizer.decode(output[0], skip_special_tokens=True)
-    answer = text.split("Answer:")[-1].strip()
+
+    # Try to return only the assistant part after "Answer:" if present
+    answer = text.split("Answer:")[-1].strip() if "Answer:" in text else text.strip()
     return answer
 
 # ---- Streamlit UI ----
-st.set_page_config(page_title="Follow-up-aware RAG", layout="wide")
-st.title("Follow-up-aware RAG (HF + FAISS)")
+st.set_page_config(page_title="Follow-up-aware RAG Analyst", layout="wide")
+st.title("Follow-up-aware RAG Analyst (HF + FAISS)")
 
 # Sidebar: index paths
 st.sidebar.header("Index configuration")
-index_prefix = st.sidebar.text_input("FAISS index prefix", "./data/vector/rag_index")
-metadata_path = st.sidebar.text_input("Metadata JSONL path", "./data/vector/metadata.jsonl")
-top_k = st.sidebar.slider("Top-K", min_value=1, max_value=10, value=6)
+index_prefix = st.sidebar.text_input("FAISS index prefix", FAISS_INDEX_PATH)
+metadata_path = st.sidebar.text_input("Metadata JSONL path", METADATA_PATH)
+top_k = st.sidebar.slider("Top-K", min_value=1, max_value=10, value=5, step=1)
 
 # Load models
 embedder = load_embedder()
@@ -105,7 +138,9 @@ tokenizer, gen_model = load_generator()
 # Load index + metadata when paths change
 if "store" not in st.session_state or st.session_state.get("index_prefix") != index_prefix:
     try:
-        st.session_state.store = load_index(index_prefix, emb_dim=embedder.get_sentence_embedding_dimension())
+        emb_dim = embedder.get_sentence_embedding_dimension()
+        st.session_state.store = load_index(index_prefix, 
+                                            emb_dim=emb_dim)
         st.session_state.index_prefix = index_prefix
     except Exception as e:
         st.warning(f"Failed to load FAISS index from {index_prefix}: {e}")
@@ -130,8 +165,12 @@ with st.form("chat_form", clear_on_submit=True):
 
 if submitted and user_q.strip():
     # RAG pipeline
-    standalone_q = rewrite_question(tokenizer, gen_model, st.session_state.history, user_q.strip())
-    docs, sources = retrieve(standalone_q, st.session_state.store, embedder, st.session_state.meta, k=top_k)
+    standalone_q = rewrite_question(tokenizer, gen_model, 
+                                    st.session_state.history, 
+                                    user_q.strip())
+    docs, sources = retrieve(standalone_q, 
+                             st.session_state.store, 
+                             embedder, st.session_state.meta, k=top_k)
     answer = generate_answer(tokenizer, gen_model, standalone_q, docs)
 
     # Update history
@@ -139,6 +178,8 @@ if submitted and user_q.strip():
     st.session_state.history.append(("assistant", answer))
 
     # Show results
+    st.subheader("User Question")
+    st.write(user_q.strip())
     st.subheader("Answer")
     st.write(answer)
     st.caption(f"Standalone query: {standalone_q}")
@@ -159,7 +200,9 @@ if cols[0].button("Clear history"):
     st.experimental_rerun()
 if cols[1].button("Reload index"):
     # Re-load cached resources
-    st.session_state.store = load_index(index_prefix, emb_dim=embedder.get_sentence_embedding_dimension())
+    emb_dim = embedder.get_sentence_embedding_dimension()
+    st.session_state.store = load_index(index_prefix, 
+                                        emb_dim=emb_dim)
     st.session_state.meta = load_metadata(metadata_path)
     st.success("Index reloaded.")
 

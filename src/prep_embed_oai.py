@@ -33,8 +33,6 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from openai import OpenAI
 client = OpenAI()
 
-import tempfile
-
 # ---------------------------
 # Config
 # ---------------------------

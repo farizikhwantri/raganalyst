@@ -10,3 +10,9 @@ EMBED_DIM = 384  # for all-MiniLM-L6-v2
 
 # Generator LLM (HF)
 GEN_MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
+MAX_NEW_TOKENS = 256
+
+
+# faiss_vector index path
+FAISS_INDEX_PATH = "./data/vector/rag_index"
+METADATA_PATH = "./data/vector/metadata.jsonl"

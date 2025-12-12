@@ -3,13 +3,15 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
 
-from prep_embed import FaissIndexStore
+from faiss_module import FaissIndexStore
 
 EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 embedder = SentenceTransformer(EMBED_MODEL_NAME)
-store = FaissIndexStore.load("./data/vector/rag_index", dim=embedder.get_sentence_embedding_dimension())
+embed_dim = embedder.get_sentence_embedding_dimension()
+store = FaissIndexStore.load("./data/vector/rag_index", 
+                             dim=embed_dim)
 
 # load metadata
 meta = {}
