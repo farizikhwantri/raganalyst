@@ -10,10 +10,13 @@ from faiss_module import FaissIndexStore
 from rag_module import HybridProvider, rewrite_question, retrieve_with_expansion, generate_answer
 
 # ---------------- Config ----------------
-HYBRID_INDEX_PREFIX = "./data/vector/rag_index"  # FAISS built with HF embeddings
-HYBRID_METADATA_PATH = "./data/vector/metadata.jsonl"
+from config import OPENAI_MODEL
+from config import FAISS_INDEX_PATH
+from config import METADATA_PATH
+# HYBRID_INDEX_PREFIX = "./data/vector/rag_index"  # FAISS built with HF embeddings
+# HYBRID_METADATA_PATH = "./data/vector/metadata.jsonl"
 
-OPENAI_MODEL = "gpt-4o-mini"
+# OPENAI_MODEL = "gpt-4o-mini"
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -62,8 +65,8 @@ st.set_page_config(page_title="RAG Analyst (Hybrid: HF embed + OpenAI gen)", lay
 st.title("RAG Analyst (Hybrid: HF embeddings + OpenAI generation)")
 
 st.sidebar.header("Index configuration")
-index_prefix = st.sidebar.text_input("FAISS index prefix (HF-built)", HYBRID_INDEX_PREFIX)
-metadata_path = st.sidebar.text_input("Metadata JSONL path", HYBRID_METADATA_PATH)
+index_prefix = st.sidebar.text_input("FAISS index prefix (HF-built)", FAISS_INDEX_PATH)
+metadata_path = st.sidebar.text_input("Metadata JSONL path", METADATA_PATH)
 top_k = st.sidebar.slider("Top-K", 1, 10, 5, 1)
 
 # Sidebar: choose HF embedder (must match index’s dimension)
@@ -99,13 +102,29 @@ if "history" not in st.session_state:
     st.session_state.history = []
 if "last_q" not in st.session_state:
     st.session_state.last_q = None
+if "last_params" not in st.session_state:
+    st.session_state.last_params = {}
 
 with st.form("chat_form", clear_on_submit=True):
     user_q = st.text_input("Ask a question", "", key="user_q_input")
     submitted = st.form_submit_button("Send")
 
 if submitted and user_q.strip():
-    if st.session_state.last_q == user_q.strip():
+    # Build a params snapshot that affects retrieval/generation
+    current_params = {
+        "top_k": top_k,
+        "index_prefix": index_prefix,
+        "metadata_path": metadata_path,
+        "embedder_name": embedder_name,
+        "embed_dim": embed_dim,
+        # optionally include OPENAI_MODEL if it’s changeable from config/UI
+        "gen_model": OPENAI_MODEL,
+    }
+
+    # Only skip when both question and params are identical
+    same_question = st.session_state.last_q == user_q.strip()
+    same_params = st.session_state.last_params == current_params
+    if same_question and same_params:
         st.stop()
 
     with st.spinner("Rewriting follow-up question..."):

@@ -86,6 +86,11 @@ if "meta" not in st.session_state or st.session_state.get("metadata_path") != me
 # Initialize chat history
 if "history" not in st.session_state:
     st.session_state.history = []
+# Track last question and params to avoid skipping when only params change
+if "last_q" not in st.session_state:
+    st.session_state.last_q = None
+if "last_params" not in st.session_state:
+    st.session_state.last_params = {}
 
 # Chat input
 with st.form("chat_form", clear_on_submit=True):
@@ -93,6 +98,22 @@ with st.form("chat_form", clear_on_submit=True):
     submitted = st.form_submit_button("Send")
 
 if submitted and user_q.strip():
+    # # Build a snapshot of current settings that affect results
+    # current_params = {
+    #     "top_k": top_k,
+    #     "index_prefix": index_prefix,
+    #     "metadata_path": metadata_path,
+    #     "embed_model": EMBED_MODEL_NAME,
+    #     "gen_model": GEN_MODEL_NAME,
+    #     "emb_dim": embedder.get_sentence_embedding_dimension(),
+    # }
+
+    # # Only skip if both question and params are unchanged
+    # same_question = st.session_state.last_q == user_q.strip()
+    # same_params = st.session_state.last_params == current_params
+    # if same_question and same_params:
+    #     st.stop()
+
     with st.spinner("Rewriting follow-up question..."):
         standalone_q = rewrite_question(provider, st.session_state.history, user_q.strip())
 

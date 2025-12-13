@@ -3,7 +3,6 @@ import json
 from typing import List,  Tuple, Optional
 
 
-from pdf2image import convert_from_path
 import numpy as np
 
 import faiss

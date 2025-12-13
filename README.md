@@ -22,7 +22,7 @@ Ubuntu: ```sudo apt install tesseract-ocr```
 Hugging Face embeddings (SentenceTransformers), combined index:
   
 ```bash
-python ./src/hf_prep_embed.py data/assignment/Data --output_dir data/vector --combine
+python ./src/prep_embed_hf.py data/assignment/Data --output_dir data/vector --combine
 ```
 
 Outputs under `data/vector/`:
@@ -38,7 +38,7 @@ OpenAI embeddings (text-embedding-3-large), combined index:
   
 ```bash
 export OPENAI_API_KEY=<your_key>
-python ./src/oai_prep_embed.py data/assignment/Data --outdir data/vector_oai
+python ./src/prep_embed_oai.py data/assignment/Data --outdir data/vector_oai
 ```
 
 Outputs under `data/vector_oai/`:

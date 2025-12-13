@@ -3,14 +3,12 @@ import json
 import uuid
 import argparse
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 
 import fitz  # PyMuPDF
 from pdf2image import convert_from_path
-from PIL import Image
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
 
 from faiss_module import FaissIndexStore
 
