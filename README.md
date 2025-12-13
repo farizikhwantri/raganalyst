@@ -17,6 +17,40 @@ macOS (Homebrew): ```brew install tesseract```
 Ubuntu: ```sudo apt install tesseract-ocr```
 
 
+## Prepare and persist embedding vectors
+
+- Hugging Face embeddings (SentenceTransformers), combined index:
+  
+```bash
+python ./src/prep_embed.py data/assignment/Data --output_dir data/vector --combine
+```
+
+Outputs under `data/vector/`:
+
+- `rag_index.index`,
+- `rag_index.ids.json`
+- `metadata.jsonl`
+- `embeddings.npy`
+- `images.json`
+- extracted images: `data/vector/extracted_images/...`
+
+- OpenAI embeddings (text-embedding-3-large), combined index:
+  
+```bash
+export OPENAI_API_KEY=<your_key>
+python ./src/oai_prep_embed.py data/assignment/Data --outdir data/vector_oai
+```
+
+Outputs under `data/vector_oai/`:
+
+- `rag_index.index`,
+- `rag_index.ids.json`
+- `metadata.jsonl`
+- `embeddings.npy`
+- `images.json`
+- `manifest.json` (records embedding model/dim)
+
+
 Build (on macOS; add --platform if on Apple Silicon to get faiss-cpu wheels):
 
 ```bash
