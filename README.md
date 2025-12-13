@@ -34,7 +34,7 @@ Outputs under `data/vector/`:
 - `images.json`
 - extracted images: `data/vector/extracted_images/...`
 
-- OpenAI embeddings (text-embedding-3-large), combined index:
+OpenAI embeddings (text-embedding-3-large), combined index:
   
 ```bash
 export OPENAI_API_KEY=<your_key>
