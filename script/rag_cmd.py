@@ -3,12 +3,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from sentence_transformers import SentenceTransformer
 import torch
 
-from faiss_module import FaissIndexStore
+from src.faiss_module import FaissIndexStore
 
-from config import EMBED_MODEL_NAME
-from config import GEN_MODEL_NAME
-from config import FAISS_INDEX_PATH
-from config import METADATA_PATH
+from src.config import EMBED_MODEL_NAME
+from src.config import GEN_MODEL_NAME
+from src.config import FAISS_INDEX_PATH
+from src.config import METADATA_PATH
 
 def rewrite_question(history: list, question: str) -> str:
     """

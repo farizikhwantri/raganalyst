@@ -16,3 +16,11 @@ MAX_NEW_TOKENS = 256
 # faiss_vector index path
 FAISS_INDEX_PATH = "./data/vector/rag_index"
 METADATA_PATH = "./data/vector/metadata.jsonl"
+
+# OpenAI config (if using OpenAI embeddings or generation)
+# ---------------- Config ----------------
+OAI_INDEX_PREFIX = "./data/vector_oai/rag_index"
+OAI_METADATA_PATH = "./data/vector_oai/metadata.jsonl"
+
+OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_EMBED_MODEL = "text-embedding-3-large"  # default; overridden by manifest

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-from faiss_module import FaissIndexStore
+from src.faiss_module import FaissIndexStore
 
 # ---------------- Config ----------------
 DEFAULT_INDEX_PREFIX = "./data/vector_oai/rag_index"

@@ -22,7 +22,7 @@ Ubuntu: ```sudo apt install tesseract-ocr```
 Hugging Face embeddings (SentenceTransformers), combined index:
   
 ```bash
-python ./src/prep_embed.py data/assignment/Data --output_dir data/vector --combine
+python ./src/hf_prep_embed.py data/assignment/Data --output_dir data/vector --combine
 ```
 
 Outputs under `data/vector/`:
@@ -59,16 +59,26 @@ docker build -t raganalyst:latest -f dockerfile .
 
 Apple Silicon note: ```docker build --platform=linux/amd64 -t raganalyst:latest -f dockerfile .```
 
-Run the OpenAI app (oai_streamlit.py):
+Run the OpenAI app (app_oai.py):
 
 ```bash
-docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/oai_streamlit.py port=8501"
+docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_oai.py port=8501"
 ```
 
-Run the local HF app (rag_streamlit.py):
+Run the local HF app (app_hf.py):
 
 ```bash
-docker run --rm -p 8501:8501   -e HUGGINGFACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXX -v "$(pwd)/.cache:/root/.cache/huggingface" -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/rag_streamlit.py port=8501"
+docker run --rm -p 8501:8501   -e HUGGINGFACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXX -v "$(pwd)/.cache:/root/.cache/huggingface" -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_hf.py port=8501"
+```
+
+Run the Hybrid (Local Embedding + OpenAI (GPT-4o) LLMs) app:
+
+```bash
+docker run --rm -p 8501:8501 \
+  -e OPENAI_API_KEY=sk_... \
+  -v "$(pwd)/data:/app/data" \
+  raganalyst:latest \
+  bash -lc "streamlit run src/app_hybrid.py --server.address=0.0.0.0 --server.port=8501"
 ```
 
 Notes:

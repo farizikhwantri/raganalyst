@@ -12,11 +12,8 @@ from faiss_module import FaissIndexStore
 from rag_module import OpenAIProvider, rewrite_question, retrieve_with_expansion, generate_answer
 
 # ---------------- Config ----------------
-OAI_INDEX_PREFIX = "./data/vector_oai/rag_index"
-OAI_METADATA_PATH = "./data/vector_oai/metadata.jsonl"
-
-OPENAI_MODEL = "gpt-4o-mini"
-OPENAI_EMBED_MODEL = "text-embedding-3-large"  # default; overridden by manifest
+from config import OAI_INDEX_PREFIX, OAI_METADATA_PATH
+from config import OPENAI_EMBED_MODEL, OPENAI_MODEL
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 

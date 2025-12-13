@@ -8,9 +8,9 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from sentence_transformers import SentenceTransformer
 
-from faiss_module import FaissIndexStore
-from config import EMBED_MODEL_NAME, GEN_MODEL_NAME
-from config import FAISS_INDEX_PATH, METADATA_PATH
+from src.faiss_module import FaissIndexStore
+from src.config import EMBED_MODEL_NAME, GEN_MODEL_NAME
+from src.config import FAISS_INDEX_PATH, METADATA_PATH
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 HF_TOKEN = os.getenv("HUGGINGFACE_HUB_TOKEN") or os.getenv("HF_TOKEN")
