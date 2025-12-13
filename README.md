@@ -4,6 +4,75 @@ RAG specializing in the analysis of Annual Reports within the automotive sector
 
 ![Demo: RAGAnalyst Streamlit](docs/media/app_oai_demo.gif)
 
+## Follow-up aware RAG with query expansion for diverse Top-K retrieval
+
+### Problem
+
+- Annual report questions often appear as follow-ups and depend on chat history.
+- Users use different phrasings (“profits”, “net income”, “operating margin”).
+- A single literal query can miss relevant chunks across companies and years.
+
+### Goals
+
+- Normalize follow-up questions into standalone queries (rewrite_question).
+- Expand each query into multiple variants (expand_queries) to capture synonyms, company names, and years.
+- Diversify Top-K by balancing results per company while keeping best-scoring chunks.
+
+### Features
+
+1. rewrite_question
+   - Converts follow-ups into standalone queries using conversation context.
+   - Outcome: clear, self-contained query for consistent retrieval.
+
+2. expand_queries
+   - Generates 6–10 short variants:
+     - Metric synonyms: revenue, net sales, net income, profit, EBIT, EBITDA, operating margin, return on sales.
+     - Companies from metadata: Tesla, BMW, Ford.
+     - Year hints: 2017, 2020–2023.
+   - Embeds each variant, merges hits, and deduplicates IDs for robust coverage.
+
+3. Company-balanced Top-K
+   - Pools candidates per company and selects best chunks in rounds.
+   - Ensures multi-company questions don’t collapse to one issuer; fills remaining slots by global score.
+
+### How it meets the functional requirements
+
+- Point questions: “BMW’s total revenue in 2023?”, “Tesla revenue in 2023?”
+  - Rewriting + revenue synonyms catch “net sales” sections.
+- Year-specific: “Ford revenue 2020?”, “BMW revenue 2017?”
+  - Year extraction biases selection and filters sources containing the target year.
+- Qualitative: “Economic factors for Ford in 2021?”
+  - Expansion includes macro terms to surface MD&A sections.
+- Product-stage: “Tesla product in development?”
+  - Variants around “development”, “pipeline”, “R&D”, “roadmap” retrieve product strategy pages.
+- Profit comparisons: “BMW profits 2020 and 2023?”, “Who had higher profits in 2022?”
+  - Synonyms (net income, operating profit, EBIT, EBITDA) ensure relevant numeric sections; company-balanced selection yields comparable chunks.
+- Multi-company summaries: “Revenue for Tesla, BMW, Ford over past three years.”
+  - Expansion over companies and years increases coverage; balancing enforces diversity.
+- Trends: “BMW growth trends 2020–2023.”
+  - Variants include growth/YoY/CAGR/profitability to surface MD&A and KPI tables.
+
+### Behavioral summary
+
+- For each input:
+  - Rewrite to standalone if follow-up.
+  - Expand into targeted variants (company + year + metric synonyms).
+  - Embed, search FAISS, combine results, dedupe, and balance per company.
+  - Pass Top-K chunks to the generator (OpenAI or HF) for grounded answers.
+
+### Benefits
+
+- Higher recall via targeted expansion without sacrificing precision.
+- Better multi-issuer coverage through company-balanced selection.
+- Robust handling of conversational follow-ups.
+- Improved answers for metric- and year-specific questions.
+
+### Usage notes
+
+- Use the index built with the same embedder as runtime; do not mix HF-embedded indexes with OpenAI query embeddings and vice versa.
+- The Hybrid app uses HF embeddings for retrieval with OpenAI for rewriting/answering.
+- 
+
 Setup
 
 ```bash
