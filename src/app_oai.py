@@ -99,9 +99,6 @@ with st.form("chat_form", clear_on_submit=True):
     submitted = st.form_submit_button("Send")
 
 if submitted and user_q.strip():
-    if st.session_state.last_q == user_q.strip():
-        st.stop()
-
     with st.spinner("Rewriting follow-up question..."):
         standalone_q = rewrite_question(provider, st.session_state.history, user_q.strip())
 
