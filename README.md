@@ -22,7 +22,7 @@ RAG specializing in the analysis of Annual Reports within the automotive sector
 
 1. rewrite_question
    - Converts follow-ups into standalone queries using conversation context.
-   - Outcome: clear, self-contained query for consistent retrieval.
+   - Objective: clear, self-contained query for consistent retrieval.
 
 2. expand_queries
    - Generates 6–10 short variants:
