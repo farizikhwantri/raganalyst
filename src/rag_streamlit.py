@@ -13,6 +13,7 @@ from config import EMBED_MODEL_NAME, GEN_MODEL_NAME
 from config import FAISS_INDEX_PATH, METADATA_PATH
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+HF_TOKEN = os.getenv("HUGGINGFACE_HUB_TOKEN") or os.getenv("HF_TOKEN")
 
 # ---- Cache model loaders ----
 @st.cache_resource
@@ -21,9 +22,11 @@ def load_embedder():
 
 @st.cache_resource
 def load_generator():
-    tokenizer = AutoTokenizer.from_pretrained(GEN_MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(GEN_MODEL_NAME,
+                                              token=HF_TOKEN)
     gen_model = AutoModelForCausalLM.from_pretrained(
         GEN_MODEL_NAME,
+        token=HF_TOKEN,
         dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         device_map="auto",
     )

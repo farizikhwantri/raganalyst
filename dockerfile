@@ -7,22 +7,26 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TOKENIZERS_PARALLELISM=false \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-# Minimal system deps; libmagic for python-magic, libgomp for faiss-cpu
+# System deps: libmagic for python-magic, libgomp for faiss-cpu, tesseract + poppler (pdf2image)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libmagic1 libgomp1 && \
+    libmagic1 libgomp1 tesseract-ocr poppler-utils && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python deps first for better cache
-COPY requirements.txt /app/requirements.txt
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install CPU-only PyTorch first (avoids CUDA wheels)
+RUN pip install --upgrade pip && \
+    pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+      torch torchvision torchaudio
 
-# Copy the repo
+# Then install the rest
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy app
 COPY . /app
 
-# Streamlit runs on 8501 by default
 EXPOSE 8501
 
-# Default: run the OpenAI RAG app; override command to run rag_streamlit.py
+# Default to OpenAI Streamlit app; override CMD to run HF app
 CMD ["bash", "-lc", "streamlit run src/oai_streamlit.py --server.address=0.0.0.0 --server.port=8501"]

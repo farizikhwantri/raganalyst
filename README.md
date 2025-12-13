@@ -28,19 +28,13 @@ Apple Silicon note: ```docker build --platform=linux/amd64 -t raganalyst:latest 
 Run the OpenAI app (oai_streamlit.py):
 
 ```bash
-docker run --rm -p 8501:8501
--e OPENAI_API_KEY=sk-...
--v "$(pwd)/data:/app/data"
-raganalyst:latest
+docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/oai_streamlit.py port=8501"
 ```
 
 Run the local HF app (rag_streamlit.py):
 
 ```bash
-docker run --rm -p 8501:8501
--v "$(pwd)/data:/app/data"
-raganalyst:latest
-bash -lc "streamlit run rag_streamlit.py --server.address=0.0.0.0 --server.port=8501"
+docker run --rm -p 8501:8501   -e HUGGINGFACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXX -v "$(pwd)/.cache:/root/.cache/huggingface" -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/rag_streamlit.py port=8501"
 ```
 
 Notes:
