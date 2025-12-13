@@ -19,7 +19,7 @@ Ubuntu: ```sudo apt install tesseract-ocr```
 
 ## Prepare and persist embedding vectors
 
-- Hugging Face embeddings (SentenceTransformers), combined index:
+Hugging Face embeddings (SentenceTransformers), combined index:
   
 ```bash
 python ./src/prep_embed.py data/assignment/Data --output_dir data/vector --combine
