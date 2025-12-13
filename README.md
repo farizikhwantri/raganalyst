@@ -71,7 +71,6 @@ RAG specializing in the analysis of Annual Reports within the automotive sector
 
 - Use the index built with the same embedder as runtime; do not mix HF-embedded indexes with OpenAI query embeddings and vice versa.
 - The Hybrid app uses HF embeddings for retrieval with OpenAI for rewriting/answering.
-- 
 
 Setup
 
@@ -135,8 +134,6 @@ Run the OpenAI app (app_oai.py):
 ```bash
 docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_oai.py port=8501"
 ```
-
-
 
 Run the local HF app (app_hf.py):
 
