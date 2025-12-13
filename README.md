@@ -2,6 +2,8 @@
 
 RAG specializing in the analysis of Annual Reports within the automotive sector
 
+![Demo: RAGAnalyst Streamlit](docs/media/app_oai_demo.gif)
+
 Setup
 
 ```bash
@@ -64,6 +66,8 @@ Run the OpenAI app (app_oai.py):
 ```bash
 docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_oai.py port=8501"
 ```
+
+
 
 Run the local HF app (app_hf.py):
 
