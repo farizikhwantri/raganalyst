@@ -3,17 +3,17 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from sentence_transformers import SentenceTransformer
 import torch
 
-from src.faiss_module import FaissIndexStore
+from faiss_module import FaissIndexStore
 
-from src.config import EMBED_MODEL_NAME
-from src.config import GEN_MODEL_NAME
-from src.config import FAISS_INDEX_PATH
-from src.config import METADATA_PATH
+from config import EMBED_MODEL_NAME
+from config import GEN_MODEL_NAME
+from config import FAISS_INDEX_PATH
+from config import METADATA_PATH
 
 def rewrite_question(history: list, question: str) -> str:
     """
     Rewrite follow-up question into a standalone query.
-    history: list of (role, text), e.g., [("user","..."),("assistant","...")]
+    history: list of (role, text), e.g., [("user","."),("assistant",".")]
     """
     hist_text = "\n".join([f"{r}: {t}" for r, t in history][-8:])  # last 8 turns
     prompt = (

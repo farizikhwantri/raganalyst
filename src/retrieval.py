@@ -3,7 +3,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
 
-from src.faiss_module import FaissIndexStore
+from faiss_module import FaissIndexStore
 
 EMBED_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
