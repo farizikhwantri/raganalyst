@@ -206,4 +206,14 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+.git
+.venv
+.env
+__pycache__/
+*.pyc
+data/
+models/
+.cache/
+.DS_Store
+
 data/

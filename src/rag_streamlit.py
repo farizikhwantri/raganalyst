@@ -413,7 +413,7 @@ for role, msg in st.session_state.history[-10:]:
 cols = st.columns(2)
 if cols[0].button("Clear history"):
     st.session_state.history = []
-    st.experimental_rerun()
+    st.rerun()
 if cols[1].button("Reload index"):
     # Re-load cached resources
     emb_dim = embedder.get_sentence_embedding_dimension()
