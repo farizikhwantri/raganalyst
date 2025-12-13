@@ -16,7 +16,6 @@ macOS (Homebrew): ```brew install tesseract```
 
 Ubuntu: ```sudo apt install tesseract-ocr```
 
-
 ## Prepare and persist embedding vectors
 
 Hugging Face embeddings (SentenceTransformers), combined index:
@@ -50,6 +49,7 @@ Outputs under `data/vector_oai/`:
 - `images.json`
 - `manifest.json` (records embedding model/dim)
 
+## Setup Docker build and run
 
 Build (on macOS; add --platform if on Apple Silicon to get faiss-cpu wheels):
 
@@ -68,7 +68,7 @@ docker run --rm -p 8501:8501 -e OPENAI_API_KEY=sk-... -v "$(pwd)/data:/app/data"
 Run the local HF app (app_hf.py):
 
 ```bash
-docker run --rm -p 8501:8501   -e HUGGINGFACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXX -v "$(pwd)/.cache:/root/.cache/huggingface" -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_hf.py port=8501"
+docker run --rm -p 8501:8501 -e HUGGINGFACE_HUB_TOKEN=hf_XXXXXXXXXXXXXXXX -v "$(pwd)/.cache:/root/.cache/huggingface" -v "$(pwd)/data:/app/data" raganalyst:latest bash -lc "streamlit run src/app_hf.py port=8501"
 ```
 
 Run the Hybrid (Local Embedding + OpenAI (GPT-4o) LLMs) app:
